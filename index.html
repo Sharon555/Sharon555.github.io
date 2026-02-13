@@ -1,115 +1,12 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crash Test Page</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            background-color: #222;
-            color: #eee;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-        }
-        .container {
-            text-align: center;
-            border: 2px solid #55: 40px;
-            border-radius: 10px;
-            background: #333;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
-        }
-        h1 { color: #ff4444; margin-bottom: 30px; }
-        button {
-            padding: 15px 30px;
-            font-size: 18px;
-            margin: 10px;
-            cursor: pointer;
-            border: none;
-            border-radius: 5px;
-            transition: background 0.3s;
-            font-weight: bold;
-        }
-        .btn-mem { background: #e74c3c; color: white; }
-        .btn-cpu { background: #e67e22; color: white; }
-        .btn-stack { background: #9b59b6; color: white; }
-        
-        button:hover { opacity: 0.8; }
-        
-        #status {
-            margin-top: 20px;
-            font-size: 14px;
-            color: #aaa;
-        }
-    </style>
+    <title>Crash Test</title>
 </head>
 <body>
-
-    <div class="container">
-        <h1>⚠️ 崩溃测试页面</h1>
-        <p>点击下方按钮将触发相应的测试。请做好浏览器卡死的准备。</p>
-        
-        <div>
-            <button class="btn-mem" onclick="memoryCrash()">内存溢出</button>
-            <button class="btn-cpu" onclick="cpuCrash()">CPU 死循环</button>
-            <button class="btn-stack" onclick="stackCrash()">递归溢出</button>
-        </div>
-        
-        <div id="status">状态：等待指令...</div>
-    </div>
-
+    <h1>正在崩溃中...</h1>
     <script>
-        const statusDiv = document.getElementById('status');
-
-        // 1. 内存溢出
-        // 尝试申请无限内存，直到浏览器进程被系统杀掉
-        function memoryCrash() {
-            statusDiv.innerText = "状态：正在疯狂申请内存...";
-            statusDiv.style.color = "red";
-            
-            try {
-                const arr = [];
-                // 每次循环添加 1MB 的数据，无限循环
-                while(true) {
-                    // 创建一个约 1MB 的字符串
-                    arr.push(new Array(1024 * 1024).join("x")); 
-                }
-            } catch (e 现代浏览器可能会抛出 Out of Memory 错误而不是直接崩溃
-                alert("内存申请失败（浏览器捕获了异常），但这可能已经导致页面极度卡顿。");
-            }
-        }
-
-        // 2. CPU 死循环
-        // 阻塞主线程，导致页面无响应
-        function cpuCrash() {
-            statusDiv.innerText = "状态：CPU 燃烧中...";
-            statusDiv.style.color = "orange";
-            
-            // 无限循环，阻塞 JS 主线程
-            // 这会导致页面 UI 完全冻结，无法点击、无法刷新
-            while(true) {
-                Math.random() * Math.random(); // 增加一点计算量
-            }
-        }
-
-        // 3. 递归调用栈溢出
-        // 经典的 Stack Overflow
-        function stackCrash() {
-            statusDiv.innerText = "状态：正在堆叠调用栈...";
-            statusDiv.style.color = "yellow";
-
-            const a = () => a();
-            try {
-                a();
-            } catch(e) {
-                alert("发生栈溢出 错误！浏览器捕获了异常，页面未崩溃。");
-                "状态：栈溢出测试结束。";
-            }
-        }
+        while(true) {}
     </script>
 </body>
 </html>
