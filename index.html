@@ -1,41 +1,26 @@
 <!DOCTYPE html>
 <html>
-<head><title>GPU Crash Test</title></head>
+<head><title>Renderer OOM Crash</title></head>
 <body>
-    <h1>正在尝试通过 WebGL 崩溃 GPU 进程...</h1>
-    <canvas id="c"></canvas>
+    <h1>Allocating ~2GB to trigger Renderer OOM...</h1>
     <script>
-        const canvas = document.getElementById('c');
-        const gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
+        var arr = [];
+        // 目标是分配大约 2GB - 4GB 的内存
+        // 这通常是 64 位浏览器下单个 Renderer 进程的“软限制”或“硬限制”
+        // 超过这个限制，操作系统会杀掉该进程，而不是整个系统
+        var targetGB = 4; 
+        var chunkSize = 128 * 1024 * 1024; // 128MB
         
-        if (!gl) {
-            document.body.innerText = "不支持 WebGL";
-        } else {
-            // 1. 分配极大的 Canvas 尺寸，试图耗尽显存
-            // 注意：不同浏览器对尺寸有限制，这里尝试设置一个极大的值
-            try {
-                canvas.width = 99999;
-                canvas.height = 99999;
-            } catch(e) {}
-
-            // 2. 疯狂创建纹理和缓冲区
-            function attack() {
-                while (true) {
-                    const texture = gl.createTexture();
-                    gl.bindTexture(gl.TEXTURE_2D, texture);
-                    // 分配一个并不存在的大尺寸图像内存
-                    // 这会迫使驱动程序尝试保留显存
-                    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 4096, 4096, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-                    
-                    const buffer = gl.createBuffer();
-                    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-                    // 分配巨大缓冲区
-                    gl.bufferData(gl.ARRAY_BUFFER, 1024 * 1024 * 64, gl.STATIC_DRAW);
-                }
+        try {
+            for (var i = 0; i < (targetGB * 8); i++) {
+                // 使用 Uint8Array 强制物理内存分配
+                arr.push(new Uint8Array(chunkSize));
+                document.body.innerText = "Allocated: " + ((i + 1) * 128) + " MB";
             }
-            
-            // 使用 try-catch 包裹通常没用，因为 GPU 崩溃发生在进程级别
-            attack();
+        } catch (e) {
+            // 如果进入这里，说明 V8 捕获了异常（OOM），进程没有崩溃
+            // 这通常发生在 PC 端内存非常大，且浏览器限制宽松时
+            document.body.innerText = "Caught OOM Exception (Process did not crash)";
         }
     </script>
 </body>
