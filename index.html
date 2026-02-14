@@ -1,31 +1,28 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Trigger Render Process Crash</title>
+    <title>Trigger OOM Crash</title>
 </head>
 <body>
-    <h1>正在触发渲染进程崩溃...</h1>
+    <h1>正在触发内存溢出以模拟进程崩溃...</h1>
     <script>
-        // 创建一个最小的 WebAssembly 模块
-        // 该模块包含一个函数，尝试加载一个无效的内存地址
-        const wasmCode = new Uint8Array([
-            0x00, 0x61, 0x73, 0x6d, // WASM_BINARY_MAGIC
-            0x01, 0x00, 0x00, 0x00, // WASM_BINARY_VERSION
-            0x01, 0x05, 0x01, 0x60, 0x00, 0x01, 0x7f, // Type section (func -> i32)
-            0x03, 0x02, 0x01, 0x00, // Function section (function 0 is type 0)
-            0x05, 0x03, 0x01, 0x00, 0x01, // Memory section (1 page)
-            0x07, 0x08, 0x01, 0x04, 0x63, 0x72, 0x61, 0x73, 0x68, 0x00, 0x00, // Export section (export "crash" as function 0)
-            0x0a, 0x06, 0x01, 0x04, 0x00, 0x41, 0x00, 0x6a, 0x0b // Code section: i32.load (访问地址 0)
-        ]);
-
         try {
-            WebAssembly.instantiate(wasmCode).then(module => {
-                // 尝试调用导出的 crash 函数
-                // 这将导致 WebAssembly 运行时崩溃，通常会导致渲染进程终止
-                module.instance.exports.crash();
-            });
+            const arr = [];
+            // 每次申请 128MB 内存，加速崩溃过程
+            const chunkSize = 128 * 1024 * 1024; 
+            
+            while (true) {
+                // 使用 Uint8Array 确保真实分配物理内存
+                // 如果只用 Array(1e9)，可能只是分配虚拟内存，不会立即触发物理内存不足
+                arr.push(new Uint8Array(chunkSize));
+                
+                // 打印日志观察进度（可能在崩溃前来不及显示）
+                console.log("Allocated memory blocks: " + arr.length);
+            }
         } catch (e) {
-            console.error(e);
+            // 即使捕获了异常，浏览器此时可能已经处于极度不稳定的状态
+            // 或者 V8 引擎抛出的 heap out of memory 也会导致进程终止
+            console.error("Caught exception, but process might die soon:", e);
         }
     </script>
 </body>
